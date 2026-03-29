@@ -1,0 +1,36 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+      
+      - name: Install dependencies
+        run: |
+          pip install buildozer
+          sudo apt-get update
+          sudo apt-get install -y git ffmpeg cmake libgtk-3-dev libgl1-mesa-dev libegl1-mesa-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good
+      
+      - name: Build APK
+        run: |
+          cd /home/runner/work/finance_tracker_mobile/finance_tracker_mobile
+          buildozer android debug
+      
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: finance-app
+          path: /home/runner/work/finance_tracker_mobile/finance_tracker_mobile/bin/
+          retention-days: 7
