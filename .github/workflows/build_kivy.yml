@@ -1,4 +1,4 @@
-name: Build APK with Buildozer
+name: Build APK
 
 on:
   push:
@@ -7,15 +7,15 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build APK with Buildozer
-        uses: paulmach/action-buildozer@v1.0.0
+      - name: Build with Buildozer
+        uses: ArnoNue/buildozer-action@v1.1
         with:
           spec: buildozer.spec
-          command: debug
+          command: android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
