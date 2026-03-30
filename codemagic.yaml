@@ -1,12 +1,13 @@
 workflows:
   - name: Build Android APK
     max_build_duration: 60
-    instance_type: mac_mini_m1
     environment:
       groups:
         - default
       vars:
         BUILD_DIR: build
+      android_signing:
+        - type: debug
     triggering:
       events:
         - push
@@ -14,26 +15,32 @@ workflows:
         - pattern: 'main'
           include: true
     scripts:
-      - name: Install Buildozer and dependencies
+      - name: Install system dependencies
         script: |
-          pip3 install buildozer
-          brew install ant
-          brew install setuptools
-          brew install cython
-          brew install sdl2 sdl2_image sdl2_mixer sdl2_ttf
-          brew install gstreamer
-          export ANDROID_HOME=$HOME/android-sdk
-          export ANDROID_NDK_HOME=$HOME/android-ndk
-          export PATH=$ANDROID_HOME/tools:$ANDROID_NDK_HOME:$PATH
-    
-      - name: Build APK with Buildozer
+          sudo apt-get update
+          sudo apt-get install -y git ffmpeg cmake libgtk-3-dev libgl1-mesa-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good libpython3-dev zlib1g-dev libjpeg-dev
+
+      - name: Install Buildozer
+        script: |
+          pip3 install buildozer==1.5.0
+          pip3 install cython==0.29.33
+
+      - name: Build APK
         script: |
           cd $CM_BUILD_DIR
+          # Set environment variables
+          export ANDROID_HOME=$ANDROID_SDK_ROOT
+          export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
+          
+          # Build with Buildozer
           buildozer android debug
-          # Copy APK to artifacts
+          
+          # Copy APK to build directory
           mkdir -p $BUILD_DIR
-          cp bin/*.apk $BUILD_DIR/ || true
-    
+          if [ -d "bin" ]; then
+            cp bin/*.apk $BUILD_DIR/ 2>/dev/null || true
+          fi
+
     artifacts:
       - build/*.apk
     
