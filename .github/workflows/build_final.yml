@@ -1,0 +1,27 @@
+name: Build APK - Final Attempt
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: image: kivy/buildozer:latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build with Buildozer
+        run: |
+          # 使用容器内预装的 buildozer
+          buildozer android debug
+        
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: finance-app
+          path: bin/
+          retention-days: 7
