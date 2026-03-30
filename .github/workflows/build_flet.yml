@@ -1,4 +1,4 @@
-name: Build Android APK with Flet
+name: Build APK with Flet
 
 on:
   push:
@@ -8,13 +8,13 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Flet
         run: |
           pip install flet
-          pip install buildozer
 
       - name: Build APK
         run: |
@@ -25,5 +25,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: finance-app
-          path: ${{ github.workspace }}/*.apk
+          path: ${{ github.workspace }}/build/
           retention-days: 7
