@@ -14,6 +14,5 @@ android.accept_sdk_license = True
 android.archs = arm64-v8a,armeabi-v7a
 android.permissions = WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
 
-# 主程序入口
-presplash_filename = 
-icon.filename = 
+# 指定主程序
+# buildozer 默认会找 main.py，确保 main.py 存在
