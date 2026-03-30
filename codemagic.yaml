@@ -1,0 +1,46 @@
+workflows:
+  - name: Build Android APK
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      groups:
+        - default
+      vars:
+        BUILD_DIR: build
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: 'main'
+          include: true
+    scripts:
+      - name: Install Buildozer and dependencies
+        script: |
+          pip3 install buildozer
+          brew install ant
+          brew install setuptools
+          brew install cython
+          brew install sdl2 sdl2_image sdl2_mixer sdl2_ttf
+          brew install gstreamer
+          export ANDROID_HOME=$HOME/android-sdk
+          export ANDROID_NDK_HOME=$HOME/android-ndk
+          export PATH=$ANDROID_HOME/tools:$ANDROID_NDK_HOME:$PATH
+    
+      - name: Build APK with Buildozer
+        script: |
+          cd $CM_BUILD_DIR
+          buildozer android debug
+          # Copy APK to artifacts
+          mkdir -p $BUILD_DIR
+          cp bin/*.apk $BUILD_DIR/ || true
+    
+    artifacts:
+      - build/*.apk
+    
+    publishing:
+      github:
+        - step_id: release
+          name: Upload to GitHub Releases
+          token: ${{ secrets: github_token }}
+          tag: v1.0.$(BUILD_NUMBER)
+          draft: false

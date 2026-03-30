@@ -1,0 +1,42 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Android SDK
+        run: |
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O android-tools.zip
+          unzip -q android-tools.zip -d $ANDROID_HOME/cmdline-tools
+          mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+          rm android-tools.zip
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0" "ndk;25.2.9519653"
+
+      - name: Install Buildozer
+        run: |
+          pip3 install buildozer
+          sudo apt-get update
+          sudo apt-get install -y git ffmpeg cmake libgtk-3-dev libgl1-mesa-dev libgstreamer1.0-dev
+
+      - name: Build APK
+        run: |
+          cd ${{ github.workspace }}
+          buildozer android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: finance-app
+          path: bin/
+          retention-days: 7
