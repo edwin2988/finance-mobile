@@ -1,53 +1,49 @@
-workflows:
-  - name: Build Android APK
-    max_build_duration: 60
-    environment:
-      groups:
-        - default
-      vars:
-        BUILD_DIR: build
-      android_signing:
-        - type: debug
-    triggering:
-      events:
-        - push
-      branch_patterns:
-        - pattern: 'main'
-          include: true
-    scripts:
-      - name: Install system dependencies
-        script: |
-          sudo apt-get update
-          sudo apt-get install -y git ffmpeg cmake libgtk-3-dev libgl1-mesa-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good libpython3-dev zlib1g-dev libjpeg-dev
+id: finance-mobile-build
+name: Build Android APK
+max_build_duration: 60
 
-      - name: Install Buildozer
-        script: |
-          pip3 install buildozer==1.5.0
-          pip3 install cython==0.29.33
+environment:
+  groups:
+    - default
 
-      - name: Build APK
-        script: |
-          cd $CM_BUILD_DIR
-          # Set environment variables
-          export ANDROID_HOME=$ANDROID_SDK_ROOT
-          export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
-          
-          # Build with Buildozer
-          buildozer android debug
-          
-          # Copy APK to build directory
-          mkdir -p $BUILD_DIR
-          if [ -d "bin" ]; then
-            cp bin/*.apk $BUILD_DIR/ 2>/dev/null || true
-          fi
+triggering:
+  events:
+    - push
+  branch_patterns:
+    - pattern: 'main'
+      include: true
 
-    artifacts:
-      - build/*.apk
-    
-    publishing:
-      github:
-        - step_id: release
-          name: Upload to GitHub Releases
-          token: ${{ secrets: github_token }}
-          tag: v1.0.$(BUILD_NUMBER)
-          draft: false
+scripts:
+  - name: Install system dependencies
+    script: |
+      sudo apt-get update
+      sudo apt-get install -y git ffmpeg cmake libgtk-3-dev libgl1-mesa-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good libpython3-dev zlib1g-dev libjpeg-dev
+
+  - name: Install Buildozer
+    script: |
+      pip3 install buildozer==1.5.0
+      pip3 install cython==0.29.33
+
+  - name: Build APK
+    script: |
+      cd $CM_BUILD_DIR
+      export ANDROID_HOME=$ANDROID_SDK_ROOT
+      export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
+      buildozer android debug
+      
+      # Copy APK to build directory
+      mkdir -p build
+      if [ -d "bin" ]; then
+        cp bin/*.apk build/ 2>/dev/null || true
+      fi
+
+artifacts:
+  - build/*.apk
+
+publishing:
+  github:
+    - step_id: release
+      name: Upload to GitHub Releases
+      token: $CM_GITHUB_TOKEN
+      tag: v1.0.$BUILD_NUMBER
+      draft: false
