@@ -1,4 +1,4 @@
-name: Build APK
+name: Build APK with Docker
 
 on:
   push:
@@ -7,15 +7,16 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    container: kivy/buildozer:latest
+    
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build with Buildozer
-        uses: ArnoNue/buildozer-action@v1.1
-        with:
-          spec: buildozer.spec
-          command: android debug
+      - name: Build APK
+        run: |
+          pip install buildozer
+          buildozer android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
